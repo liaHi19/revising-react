@@ -1,12 +1,27 @@
-# React + Vite
+# use() API
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## use is a React API that lets you read the value of a resource like a Promise or context.
 
-Currently, two official plugins are available:
+- When called with a Promise, the use API integrates with Suspense and error boundaries.
+  The component calling use suspends while the Promise passed to use is pending. If the component that calls use is wrapped in a Suspense boundary, the fallback will be displayed.  
+  Once the Promise is resolved, the Suspense fallback is replaced by the rendered components using the data returned by the use API.
+  If the Promise passed to use is rejected, the fallback of the nearest Error Boundary will be displayed.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+  promise pending -> suspense
+  promise resolved -> actual component
+  promise rejected -> error boundary
 
-## Expanding the ESLint configuration
+- use cannot be called in a try-catch block. Instead of a try-catch block wrap your component in an Error Boundary, or provide an alternative value to use with the Promise’s .catch method.
+- Promise Must Be Stable: The Promise passed to use must be memoized, else use goes into an infinite loop.
+- Data can be streamed from the server to the client by passing a Promise as a prop from a Server Component to a Client Component. The Client Component then takes the Promise it received as a prop and passes it to the use API. This allows the Client Component to read the value from the Promise that was initially created by the Server Component.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Caveats
+
+- The use API must be called inside a Component or a Hook.
+- When fetching data in a Server Component, prefer async and await over use. async and await pick up rendering from the point where await was invoked, whereas use re-renders the component after the data is resolved.
+- Prefer creating Promises in Server Components and passing them to Client Components over creating Promises in Client Components. Promises created in Client Components are recreated on every render. Promises passed from a Server Component to a Client Component are stable across re-renders.
+
+## Context
+
+- When a context is passed to use, it works similarly to useContext. While useContext must be called at the top level of your component, use can be called inside conditionals like if and loops like for. use is preferred over useContext because it is more flexible.
+- use is called from inside a if statement, allowing you to conditionally read values from a Context.
