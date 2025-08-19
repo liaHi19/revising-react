@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useState } from "react";
 
 const tempMovieData = [
@@ -114,7 +113,7 @@ const MovieList = ({ movies }) => {
     </ul>
   );
 };
-const Box = ({ children }) => {
+const Box = ({ element }) => {
   const [isOpen, setIsOpen] = useState(true);
 
   return (
@@ -122,7 +121,7 @@ const Box = ({ children }) => {
       <button className="btn-toggle" onClick={() => setIsOpen((open) => !open)}>
         {isOpen ? "–" : "+"}
       </button>
-      {isOpen && children}
+      {isOpen && element}
     </div>
   );
 };
@@ -194,55 +193,9 @@ const Main = ({ children }) => {
   return <main className="main">{children}</main>;
 };
 
-const Loader = () => {
-  return <p className="loader">Loading...</p>;
-};
-
-const ErrorMessage = ({ error }) => {
-  return (
-    <p className="error">
-      {" "}
-      <span>⛔</span>
-      {error}
-    </p>
-  );
-};
-const KEY = "fcccc909";
-
 export default function App() {
-  const [movies, setMovies] = useState([]);
+  const [movies, setMovies] = useState(tempMovieData);
   const [watched, setWatched] = useState(tempWatchedData);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const query = "interstellar";
-
-  useEffect(() => {
-    async function fetchMovies() {
-      try {
-        setIsLoading(true);
-        const res = await fetch(
-          `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
-        );
-        if (!res.ok) {
-          throw new Error("Something went wrong");
-        }
-
-        const data = await res.json();
-
-        if (data.Response === "False") {
-          setError("Movie not found");
-        }
-
-        setMovies(data.Search);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchMovies();
-  }, []);
-
   return (
     <>
       <NavBar>
@@ -250,16 +203,15 @@ export default function App() {
         <NumResults moviesNum={movies?.length} />
       </NavBar>
       <Main>
-        <Box>
-          {" "}
-          {isLoading && <Loader />}
-          {!isLoading && !error && <MovieList movies={movies} />}
-          {error && <ErrorMessage error={error} />}
-        </Box>
-        <Box>
-          <WatchedSummary watched={watched} />
-          <WatchedMovieList watched={watched} />
-        </Box>
+        <Box element={<MovieList movies={movies} />} />
+        <Box
+          element={
+            <>
+              <WatchedSummary watched={watched} />
+              <WatchedMovieList watched={watched} />
+            </>
+          }
+        />
       </Main>
     </>
   );
