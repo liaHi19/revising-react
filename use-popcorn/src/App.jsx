@@ -259,6 +259,19 @@ const MovieDetails = ({
   }
 
   useEffect(() => {
+    function callback(e) {
+      if (e.code === "Escape") {
+        closeMovie();
+      }
+    }
+    document.addEventListener("keydown", callback);
+
+    return () => {
+      document.removeEventListener("keydown", callback);
+    };
+  }, [closeMovie]);
+
+  useEffect(() => {
     async function getMovieDetails() {
       setIsLoading(true);
       const res = await fetch(
@@ -385,7 +398,7 @@ export default function App() {
       setError("");
       return;
     }
-
+    handleCloseMovie();
     fetchMovies();
     return () => {
       controller.abort();
